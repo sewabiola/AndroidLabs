@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:layout_gravity="fill"
+    android:layout_rowSpan="2"
+    android:columnCount="2"
+    android:rowCount="4">
+
+    <TextView
+        android:id="@+id/textView"
+        android:text="@string/intro_text"
+        android:textSize="30sp"
+        android:layout_columnSpan="1"/>
+
+    <ImageButton
+        android:id="@+id/imageButton"
+        android:importantForAccessibility="no"
+        android:src="@drawable/flag"
+        android:layout_columnSpan="1"/>
+
+    <Switch
+        android:id="@+id/switch1"
+        android:text="@string/switch_text"
+        android:layout_columnSpan="2"
+        android:minHeight="56dp"
+        tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+    <Button
+        android:id="@+id/button"
+        android:text="@string/cta_text"/>
+
+    <CheckBox
+        android:id="@+id/checkbox"
+        android:text="@string/checkbox_text"/>
+
+    <EditText
+        android:id="@+id/editText"
+        android:hint="@string/edit_text_hint"
+        android:layout_columnSpan="2"
+        android:minHeight="56dp"
+        tools:ignore="Autofill,TextFields" />
+</GridLayout>

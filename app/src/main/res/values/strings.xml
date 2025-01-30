@@ -1,5 +1,14 @@
 <resources>
     <string name="app_name">AndroidLabs</string>
-    <string name="hello_world">Hello World</string>
-    <string name="button_text">I\'m a button!</string>
+    <string name="hello_world">Hi Abiola! Learning Android Studio</string>
+    <string name="button_text">A big beautiful Button</string>
+    <string name="intro_text">I love Android</string>
+    <string name="flag_description">US Flag</string>
+    <string name="switch_text">Switch on/off</string>
+    <string name="cta_text">Press Me</string>
+    <string name="checkbox_text">Check this out!</string>
+    <string name="edit_text_hint">Enter a text</string>
+    <string name="toast_message">Label has been updated.</string>
+    <string name="checkbox_message">The checkbox is now</string>
+    <string name="undo">Undo</string>
 </resources>
