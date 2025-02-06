@@ -12,4 +12,10 @@
     <string name="toast_message">L\'étiquette a été mise à jour.</string>
     <string name="checkbox_message">La case à cocher est maintenant</string>
     <string name="undo">Annuler</string>
+    <string name="enter_name">Entrez votre nom</string>
+    <string name="next">Suivante</string>
+    <string name="welcome">Bienvenue</string>
+    <string name="welcome_message">Bienvenue, %1$s!</string>
+    <string name="thank_you">Merci</string>
+    <string name="dont_call_me">Ne m\'appelle pas comme ça</string>
 </resources>

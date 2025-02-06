@@ -1,52 +1,62 @@
 package com.example.androidlabs;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.snackbar.Snackbar;
-
 public class MainActivity extends AppCompatActivity {
+    private EditText nameEditText;
+    private static final String PREFS_NAME = "UserPrefs";
+    private static final String KEY_NAME = "userName";
+
+    // Activity Result Launcher to handle the response from NameActivity
+    private final ActivityResultLauncher<Intent> activityResultLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_CANCELED) {
+                    // User wants to change their name, clear the EditText
+                    nameEditText.setText("");
+                } else if (result.getResultCode() == Activity.RESULT_OK) {
+                    // User is happy, close the app
+                    finish();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main_linear);
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-//            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-//            return insets;
-//        });
-        Button button = findViewById(R.id.button);
-        EditText editText = findViewById(R.id.editText);
-        TextView textView = findViewById(R.id.textView);
+        setContentView(R.layout.activity_main);
 
-        button.setOnClickListener(v -> {
-            String text = editText.getText().toString();
-            textView.setText(text);
+        nameEditText = findViewById(R.id.nameEditText);
+        Button nextButton = findViewById(R.id.nextButton);
 
-            Toast.makeText(MainActivity.this,
-                    getResources().getString(R.string.toast_message),
-                    Toast.LENGTH_SHORT).show();
-        });
+        // Load saved name from SharedPreferences if it exists
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        nameEditText.setText(prefs.getString(KEY_NAME, ""));
 
-        CheckBox checkBox = findViewById(R.id.checkbox);
-
-        checkBox.setOnCheckedChangeListener((cb, isChecked) -> {
-            Snackbar snackbar = Snackbar.make(cb,
-                    "The checkbox is now " + (isChecked ? "on" : "off"),
-                    Snackbar.LENGTH_LONG);
-
-            snackbar.setAction("Undo", v -> cb.setChecked(!isChecked));
-            snackbar.show();
+        // Set click listener for the "Next" button
+        nextButton.setOnClickListener(v -> {
+            String name = nameEditText.getText().toString();
+            if (!name.isEmpty()) {
+                Intent intent = new Intent(MainActivity.this, NameActivity.class);
+                intent.putExtra("user_name", name);
+                activityResultLauncher.launch(intent); // Use the new API instead of startActivityForResult()
+            } else {
+                nameEditText.setError("Please enter a name");
+            }
         });
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Save the current name input in SharedPreferences
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        prefs.edit().putString(KEY_NAME, nameEditText.getText().toString()).apply();
+    }
 }

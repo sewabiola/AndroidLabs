@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".NameActivity">
 
     <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -15,22 +15,23 @@
         android:padding="16dp">
 
         <TextView
+            android:id="@+id/welcomeTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/enter_name"
-            android:textSize="18sp"/>
-
-        <EditText
-            android:id="@+id/nameEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter name"/>
+            android:text="@string/welcome"
+            android:textSize="20sp"/>
 
         <Button
-            android:id="@+id/nextButton"
+            android:id="@+id/thankYouButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/next"/>
+            android:text="@string/thank_you"/>
+
+        <Button
+            android:id="@+id/changeNameButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/dont_call_me"/>
     </LinearLayout>
 
 
