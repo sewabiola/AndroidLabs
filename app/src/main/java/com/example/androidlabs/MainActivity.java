@@ -1,62 +1,52 @@
 package com.example.androidlabs;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
+import android.widget.ListView;
+import android.widget.Switch;
 import androidx.appcompat.app.AppCompatActivity;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private EditText nameEditText;
-    private static final String PREFS_NAME = "UserPrefs";
-    private static final String KEY_NAME = "userName";
-
-    // Activity Result Launcher to handle the response from NameActivity
-    private final ActivityResultLauncher<Intent> activityResultLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == Activity.RESULT_CANCELED) {
-                    // User wants to change their name, clear the EditText
-                    nameEditText.setText("");
-                } else if (result.getResultCode() == Activity.RESULT_OK) {
-                    // User is happy, close the app
-                    finish();
-                }
-            });
+    private List<TodoItem> todoList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        nameEditText = findViewById(R.id.nameEditText);
-        Button nextButton = findViewById(R.id.nextButton);
+        ListView listView = findViewById(R.id.listView);
+        TodoAdapter adapter = new TodoAdapter(this, todoList);
+        listView.setAdapter(adapter);
 
-        // Load saved name from SharedPreferences if it exists
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        nameEditText.setText(prefs.getString(KEY_NAME, ""));
+        EditText editText = findViewById(R.id.editText);
+        @SuppressLint("UseSwitchCompatOrMaterialCode") Switch urgentSwitch = findViewById(R.id.urgentSwitch);
+        Button addButton = findViewById(R.id.addButton);
 
-        // Set click listener for the "Next" button
-        nextButton.setOnClickListener(v -> {
-            String name = nameEditText.getText().toString();
-            if (!name.isEmpty()) {
-                Intent intent = new Intent(MainActivity.this, NameActivity.class);
-                intent.putExtra("user_name", name);
-                activityResultLauncher.launch(intent); // Use the new API instead of startActivityForResult()
-            } else {
-                nameEditText.setError("Please enter a name");
+        addButton.setOnClickListener(v -> {
+            String text = editText.getText().toString().trim();
+            if (!text.isEmpty()) {
+                todoList.add(new TodoItem(text, urgentSwitch.isChecked()));
+                editText.setText("");
+                adapter.notifyDataSetChanged(); // Assume adapter is declared
             }
         });
-    }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        // Save the current name input in SharedPreferences
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        prefs.edit().putString(KEY_NAME, nameEditText.getText().toString()).apply();
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle(R.string.delete_title)
+                    .setMessage("The selected row is: " + position)
+                    .setPositiveButton(R.string.yes, (dialog, which) -> {
+                        todoList.remove(position);
+                        adapter.notifyDataSetChanged();
+                    })
+                    .setNegativeButton(R.string.no, null)
+                    .show();
+            return true;
+        });
     }
 }

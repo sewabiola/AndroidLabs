@@ -18,4 +18,10 @@
     <string name="welcome_message">Bienvenue, %1$s!</string>
     <string name="thank_you">Merci</string>
     <string name="dont_call_me">Ne m\'appelle pas comme ça</string>
+    <string name="type_here">Tapez ici</string>
+    <string name="urgent">Urgent</string>
+    <string name="add">Ajouter</string>
+    <string name="delete_title">Voulez-vous supprimer ceci?</string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
 </resources>
