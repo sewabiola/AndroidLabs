@@ -7,59 +7,35 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <LinearLayout
+    <FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:background="@android:color/black"
+        tools:ignore="RedundantNamespace">
 
-        <ListView
-            android:id="@+id/listView"
+        <!-- Full-screen ImageView -->
+        <ImageView
+            android:id="@+id/imageViewCat"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
+            android:layout_height="match_parent"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/description_cat_image" />
 
-        <LinearLayout
+        <!-- ProgressBar at the bottom -->
+        <ProgressBar
+            android:id="@+id/progressBarTimer"
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp">
+            android:layout_gravity="bottom"
+            android:max="100"
+            android:progress="0"
+            android:indeterminate="false" />
 
-            <EditText
-                android:id="@+id/editText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:importantForAutofill="yes"
-                android:autofillHints="todoText"
-                android:minHeight="48dp"
-                android:padding="12dp"
-                android:textColor="@android:color/black"
-                android:backgroundTint="@android:color/black"
-                android:hint="@string/type_here"
-                android:inputType="text" />
+    </FrameLayout>
 
-            <FrameLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minWidth="48dp"
-                android:minHeight="48dp">
-
-                <Switch
-                    android:id="@+id/urgentSwitch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/urgent"
-                    tools:ignore="UseSwitchCompatOrMaterialXml" />
-            </FrameLayout>
-
-
-            <Button
-                android:id="@+id/addButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/add"/>
-        </LinearLayout>
-    </LinearLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

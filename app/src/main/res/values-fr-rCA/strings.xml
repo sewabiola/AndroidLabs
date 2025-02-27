@@ -24,4 +24,5 @@
     <string name="delete_title">Voulez-vous supprimer ceci?</string>
     <string name="yes">Oui</string>
     <string name="no">Non</string>
+    <string name="description_cat_image">A random cat image</string>
 </resources>
