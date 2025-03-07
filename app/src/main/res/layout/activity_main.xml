@@ -1,41 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<ListView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/characterListView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
-
-    <FrameLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/black"
-        tools:ignore="RedundantNamespace">
-
-        <!-- Full-screen ImageView -->
-        <ImageView
-            android:id="@+id/imageViewCat"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:adjustViewBounds="true"
-            android:scaleType="centerCrop"
-            android:contentDescription="@string/description_cat_image" />
-
-        <!-- ProgressBar at the bottom -->
-        <ProgressBar
-            android:id="@+id/progressBarTimer"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:max="100"
-            android:progress="0"
-            android:indeterminate="false" />
-
-    </FrameLayout>
-
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    tools:context=".MainActivity" />

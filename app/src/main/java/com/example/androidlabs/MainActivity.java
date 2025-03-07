@@ -1,217 +1,175 @@
 package com.example.androidlabs;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 
 /**
- * MainActivity for randomly fetching cat images from cataas.
+ * Main screen: Shows a list of Star Wars characters from SWAPI.
+ * On tablets, displays details in a fragment.
+ * On phones, starts EmptyActivity to show details.
  */
 public class MainActivity extends AppCompatActivity {
 
-    private ImageView imageViewCat;
-    private ProgressBar progressBarTimer;
+    private ListView listView;
+    private ArrayList<CharacterData> charactersList = new ArrayList<>();
+    private CharacterAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // For tablets, if you have a res/layout-sw720dp/activity_main.xml,
+        // that file will be used automatically.
 
-        imageViewCat = findViewById(R.id.imageViewCat);
-        progressBarTimer = findViewById(R.id.progressBarTimer);
+        // Setup ListView
+        listView = findViewById(R.id.characterListView);
+        adapter = new CharacterAdapter();
+        listView.setAdapter(adapter);
 
-        // Start the AsyncTask
-        new CatImages(this).execute();
-        Log.d("MainActivity", "AsyncTask started!");
+        // Fetch data from SWAPI
+        new FetchStarWarsTask().execute("https://swapi.dev/api/people/?format=json");
+
+        // Handle list clicks
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            CharacterData selected = charactersList.get(position);
+
+            // Check if tablet layout (FrameLayout present)
+            View fragmentContainer = findViewById(R.id.fragmentLocation);
+            if (fragmentContainer == null) {
+                // PHONE: Launch EmptyActivity with extras
+                Intent intent = new Intent(MainActivity.this, EmptyActivity.class);
+                intent.putExtra("name", selected.name);
+                intent.putExtra("height", selected.height);
+                intent.putExtra("mass", selected.mass);
+                startActivity(intent);
+            } else {
+                // TABLET: Replace fragment in the same activity
+                DetailsFragment fragment = DetailsFragment.newInstance(
+                        selected.name,
+                        selected.height,
+                        selected.mass
+                );
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragmentLocation, fragment)
+                        .commit();
+            }
+        });
     }
 
     /**
-     * CatImages AsyncTask that continually fetches new cat images in the background.
+     * AsyncTask to fetch Star Wars characters from SWAPI.
      */
-    private static class CatImages extends AsyncTask<String, Integer, String> {
-
-        private final WeakReference<MainActivity> activityRef;
-        private Bitmap currentCatBitmap;
-
-        CatImages(MainActivity activity) {
-            activityRef = new WeakReference<>(activity);
-        }
-
+    private class FetchStarWarsTask extends AsyncTask<String, Void, String> {
         @Override
-        protected String doInBackground(String... params) {
-            // Keep fetching cat images forever
-            while (true) {
-                try {
-                    fetchAndLoadCatImage();
-
-                    // Display the cat for ~3 seconds (0..99 on progress bar)
-                    for (int i = 0; i < 100; i++) {
-                        publishProgress(i);
-                        Thread.sleep(30);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-
-            MainActivity activity = activityRef.get();
-            if (activity == null) return; // if the activity no longer exists
-
-            // Update the progress bar
-            int progressVal = values[0];
-            activity.progressBarTimer.setProgress(progressVal);
-
-            // Every time we reset to 0, set the new cat image
-            if (progressVal == 0 && currentCatBitmap != null) {
-                activity.imageViewCat.setImageBitmap(currentCatBitmap);
-            }
-        }
-
-        /**
-         * Fetches the random cat JSON, checks local cache, downloads if needed,
-         * and updates currentCatBitmap.
-         */
-        private void fetchAndLoadCatImage() {
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-
+        protected String doInBackground(String... urls) {
+            String result = "";
             try {
-                // 1. Get random cat JSON from cataas
-                URL catJsonUrl = new URL("https://cataas.com/cat?json=true");
-                urlConnection = (HttpURLConnection) catJsonUrl.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
+                URL url = new URL(urls[0]);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.connect();
 
-                // Read JSON response
-                InputStream inputStream = urlConnection.getInputStream();
-                if (inputStream == null) {
-                    return;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                StringBuilder jsonBuilder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    jsonBuilder.append(line).append("\n");
-                }
-                String jsonStr = jsonBuilder.toString();
-
-                // 2. Parse 'id' and 'url' from JSON
-                JSONObject jsonObject = new JSONObject(jsonStr);
-                String catId = jsonObject.getString("id");
-                String catUrl = jsonObject.getString("url");
-
-                // Some cataas results may already have "https://..." in 'url'.
-                // So check if it starts with "http". If not, prepend "https://cataas.com".
-                if (!catUrl.startsWith("http")) {
-                    catUrl = "https://cataas.com" + catUrl;
-                }
-
-                // Retrieve our Activity reference & local files dir
-                MainActivity activity = activityRef.get();
-                if (activity == null) {
-                    return; // activity no longer valid
-                }
-                File directory = activity.getFilesDir();
-                File catImageFile = new File(directory, catId + ".jpg");
-
-                // Download only if not cached
-                if (!catImageFile.exists()) {
-                    downloadCatImage(catUrl, catImageFile);
-                }
-
-                // Log file info
-                Log.d("CatImages", "Starting download for cat ID: " + catId);
-                Log.d("CatImages", "Wrote file: " + catImageFile.getAbsolutePath()
-                        + ", size = " + catImageFile.length());
-
-                // Decode into a Bitmap
-                Log.d("CatImages", "Decoding file: " + catImageFile.getAbsolutePath());
-                currentCatBitmap = BitmapFactory.decodeFile(catImageFile.getAbsolutePath());
-                Log.d("CatImages", "Bitmap is null? " + (currentCatBitmap == null));
-
-                // Immediately trigger onProgressUpdate(0) to show the new image
-                publishProgress(0);
-
-            } catch (Exception e) {
-                Log.e("CatImages", "Error fetching cat image", e);
-            } finally {
-                // Cleanup
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        Log.e("CatImages", "Error closing reader", e);
+                if (conn.getResponseCode() == 200) {
+                    InputStream inputStream = conn.getInputStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line);
                     }
+                    result = sb.toString();
                 }
-            }
-        }
-
-        /**
-         * Downloads the cat image from the given URL and saves to the given File.
-         */
-        private void downloadCatImage(String imageUrl, File outFile) {
-            HttpURLConnection connection = null;
-            InputStream input = null;
-            FileOutputStream output = null;
-
-            try {
-                URL url = new URL(imageUrl);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.connect();
-
-                // If not 200 OK, abort
-                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                    return;
-                }
-
-                input = connection.getInputStream();
-                output = new FileOutputStream(outFile);
-
-                byte[] data = new byte[4096];
-                int count;
-                while ((count = input.read(data)) != -1) {
-                    output.write(data, 0, count);
-                }
-
             } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
-                try {
-                    if (output != null) output.close();
-                    if (input != null) input.close();
-                } catch (IOException ignored) { }
-
-                if (connection != null) {
-                    connection.disconnect();
-                }
             }
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(String jsonText) {
+            super.onPostExecute(jsonText);
+            try {
+                JSONObject jsonObject = new JSONObject(jsonText);
+                JSONArray results = jsonObject.getJSONArray("results");
+
+                for (int i = 0; i < results.length(); i++) {
+                    JSONObject obj = results.getJSONObject(i);
+                    String name = obj.getString("name");
+                    String height = obj.getString("height");
+                    String mass = obj.getString("mass");
+                    charactersList.add(new CharacterData(name, height, mass));
+                }
+                adapter.notifyDataSetChanged();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Simple data class for character info.
+     */
+    private static class CharacterData {
+        String name;
+        String height;
+        String mass;
+
+        CharacterData(String name, String height, String mass) {
+            this.name = name;
+            this.height = height;
+            this.mass = mass;
+        }
+    }
+
+    /**
+     * Adapter to display names in the ListView.
+     */
+    private class CharacterAdapter extends BaseAdapter {
+        @Override
+        public int getCount() {
+            return charactersList.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return charactersList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                // Use a simple built-in layout
+                convertView = getLayoutInflater().inflate(
+                        android.R.layout.simple_list_item_1, parent, false
+                );
+            }
+            TextView text = convertView.findViewById(android.R.id.text1);
+            text.setText(charactersList.get(position).name);
+            return convertView;
         }
     }
 }
